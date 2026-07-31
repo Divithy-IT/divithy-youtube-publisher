@@ -1,0 +1,15 @@
+{
+  "content_root": "C:/Users/USER/Documents/Filmy YouTube",
+  "start_date": "2026-08-01",
+  "timezone": "Europe/Warsaw",
+  "game_order": "L4D2,PUBG",
+  "type_order": "kompilacja,pelna_rozgrywka",
+  "playlist_names": "L4D2=Left 4 Dead 2;PUBG=PUBG",
+  "category_id": "20",
+  "notify_main": true,
+  "notify_shorts": false,
+  "made_for_kids": false,
+  "api_audited": false,
+  "client_secret": "C:/path/to/client_secret.json"
+}
+

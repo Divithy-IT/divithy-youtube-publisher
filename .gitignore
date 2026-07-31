@@ -1,0 +1,14 @@
+.venv/
+__pycache__/
+*.py[cod]
+client_secret*.json
+token*.json
+upload_state.json
+ostatni_plan_publikacji.json
+publisher_config.json
+*.mp4
+*.mov
+*.mkv
+*.avi
+*.log
+
