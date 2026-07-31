@@ -1,0 +1,23 @@
+name: Błąd
+description: Zgłoś powtarzalny problem bez wrażliwych danych.
+title: "[Błąd] "
+body:
+  - type: markdown
+    attributes:
+      value: Nie dołączaj tokenów OAuth, client secret ani prywatnych filmów.
+  - type: textarea
+    id: description
+    attributes:
+      label: Co się stało?
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Kroki odtworzenia
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: System i wersja Pythona
