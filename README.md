@@ -88,6 +88,14 @@ Zasady współpracy opisuje [CONTRIBUTING.md](CONTRIBUTING.md), zmiany
 [CHANGELOG.md](CHANGELOG.md), a zgłoszenia bezpieczeństwa
 [SECURITY.md](SECURITY.md).
 
+## YouTube API compliance
+
+Divithy Publisher uses Google OAuth 2.0 and the YouTube Data API only for the
+actions requested by the authorized channel owner. Review the public
+[Privacy Policy](PRIVACY.md) and [Terms of Service](TERMS.md). Access can be
+revoked at any time from [Google Account third-party
+connections](https://myaccount.google.com/connections).
+
 ## English
 
 Divithy YouTube Publisher is a local Python application that validates content
