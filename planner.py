@@ -211,9 +211,14 @@ def build_queue(
         preferred_games or ["L4D2", "PUBG"],
         preferred_types or ["kompilacja", "pelna_rozgrywka"],
     )
-    cursor = start_date
-    for package in ordered:
+    for package_position, package in enumerate(ordered):
+        cycle_start = start_date + timedelta(days=(package_position // 2) * 5)
+        position = package_position % 2
         for index, (video, metadata) in enumerate(package.shorts, start=1):
+            if position == 0:
+                day_offset, publish_hour = {1: (0, 18), 2: (1, 18), 3: (4, 15)}[index]
+            else:
+                day_offset, publish_hour = {1: (2, 18), 2: (3, 18), 3: (4, 18)}[index]
             result.append(
                 QueueItem(
                     package=package,
@@ -222,7 +227,11 @@ def build_queue(
                     video=video,
                     thumbnail=None,
                     metadata=metadata,
-                    publish_at=datetime.combine(cursor + timedelta(days=index - 1), time(15, 0), zone),
+                    publish_at=datetime.combine(
+                        cycle_start + timedelta(days=day_offset),
+                        time(publish_hour, 0),
+                        zone,
+                    ),
                 )
             )
         result.append(
@@ -233,10 +242,13 @@ def build_queue(
                 video=package.main_video,
                 thumbnail=package.thumbnail,
                 metadata=package.main_metadata,
-                publish_at=datetime.combine(cursor + timedelta(days=2), time(18, 0), zone),
+                publish_at=datetime.combine(
+                    cycle_start + timedelta(days=0 if position == 0 else 2),
+                    time(15, 0),
+                    zone,
+                ),
             )
         )
-        cursor += timedelta(days=3)
     return sorted(result, key=lambda item: (item.publish_at, item.kind == "film"))
 
 

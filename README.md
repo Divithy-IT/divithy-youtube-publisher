@@ -13,7 +13,8 @@ playlisty, shortsy, filmy główne i planowane daty publikacji.
 
 ## Najważniejsze możliwości
 
-- rytm: po jednym shortsie o 15:00 przez trzy dni, a trzeciego dnia film o 18:00;
+- pięciodniowy rytm „film główny najpierw”: odcinki w dniach 1 i 3 o 15:00,
+  a po nich po trzy powiązane Shortsy;
 - naprzemienna kolejka gier, np. `L4D2 → PUBG → L4D2`;
 - przeplatanie kompilacji i pełnych rozgrywek wewnątrz każdej gry;
 - wyszukiwanie istniejących playlist i tworzenie brakujących;
@@ -49,6 +50,17 @@ Filmy YouTube/
 
 Paczka pełnej rozgrywki może nie mieć shortsów. Plik metadanych zawiera
 sekcje `FILM GŁÓWNY` oraz, jeśli występują, `SHORT 1` do `SHORT 3`.
+
+Domyślny cykl dwóch paczek:
+
+- dzień 1: film A 15:00, Shorts A1 18:00;
+- dzień 2: Shorts A2 18:00;
+- dzień 3: film B 15:00, Shorts B1 18:00;
+- dzień 4: Shorts B2 18:00;
+- dzień 5: Shorts A3 15:00, Shorts B3 18:00.
+
+Sloty Luźnej sceny (dzień 2, 15:00) i materiału poradnikowego (dzień 4,
+15:00) są obsługiwane przez rozszerzony lokalny workflow kanału.
 
 ## Konfiguracja
 

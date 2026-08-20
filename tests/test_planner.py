@@ -32,12 +32,29 @@ class PlannerTests(unittest.TestCase):
                                   ["kompilacja", "pelna_rozgrywka"])
             self.assertEqual([item.game for item in ordered], ["L4D2", "PUBG", "L4D2"])
 
-    def test_package_uses_three_day_schedule(self):
+    def test_two_packages_use_main_first_five_day_schedule(self):
         with tempfile.TemporaryDirectory() as tmp:
-            package = self.package(Path(tmp), 1, "L4D2", "kompilacja")
-            queue = build_queue([package], date(2026, 8, 1))
-            self.assertEqual([item.publish_at.hour for item in queue], [15, 15, 15, 18])
-            self.assertEqual(queue[-1].publish_at.date(), date(2026, 8, 3))
+            root = Path(tmp)
+            first = self.package(root, 1, "L4D2", "kompilacja")
+            second = self.package(root, 2, "PUBG", "kompilacja")
+            queue = build_queue([first, second], date(2026, 8, 1))
+            slots = [
+                (item.package.number, item.kind, item.index, item.publish_at.day, item.publish_at.hour)
+                for item in queue
+            ]
+            self.assertEqual(
+                slots,
+                [
+                    (1, "film", 0, 1, 15),
+                    (1, "short", 1, 1, 18),
+                    (1, "short", 2, 2, 18),
+                    (2, "film", 0, 3, 15),
+                    (2, "short", 1, 3, 18),
+                    (2, "short", 2, 4, 18),
+                    (1, "short", 3, 5, 15),
+                    (2, "short", 3, 5, 18),
+                ],
+            )
 
 
 if __name__ == "__main__":
