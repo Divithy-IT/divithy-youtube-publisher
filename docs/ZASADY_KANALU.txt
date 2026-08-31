@@ -1,0 +1,93 @@
+DIVITHY — PUBLICZNY OPIS ZASAD PROJEKTU
+Stan ustaleń: 31.08.2026
+
+Zakres: uporządkowany opis ustaleń kanału, bez prywatnych identyfikatorów,
+lokalnych ścieżek właściciela i historii napraw. To dokumentacja procesu,
+nie gwarancja implementacji wszystkich reguł w publicznym wydaniu kodu.
+Prywatne rejestry operacyjne nadal są wymagane do bezpiecznej obsługi kanału.
+
+1. PRODUKCJA I MARKA
+- Nazwa: Divithyツ. Styl: mroczny gaming, subtelny neon/cyberpunk.
+- Kompilacja: zwykle 10–15 minut, 1 odcinek + dokładnie 3 Shortsy.
+- Sceny zwykle 35–55 sekund; domknięcie akcji i zdania ważniejsze niż czas.
+- Usuwamy bezcelowe AFK, menu i ładowanie. Nie gubimy kontekstu ani puenty.
+- Najstarsze nieużyte źródła mają pierwszeństwo; użycie zapisujemy w manifeście.
+- Odrzucone sceny mają listę do kontroli, nie są automatycznie bezwartościowe.
+- Pełne rozgrywki i kompilacje mają wspólną numerację w ramach jednej gry;
+  w miarę dostępności przeplatamy te dwa typy.
+- Domyślnie proste cięcia, bez automatycznych zoomów i głośnych efektów.
+- Wyrównujemy głośność, ograniczamy krzyki, zachowujemy czytelność rozmów.
+- Intro/outro tylko z zatwierdzonych oryginalnych assetów z kontrolą SHA-256.
+  Nigdy nie odzyskujemy outro przez wycinanie końca wcześniejszego odcinka.
+- Film: intro i outro około 4 s. Shorts: bez intro, tylko zatwierdzone outro 2 s.
+- Filmy zachowują rzeczywistą jakość źródła do 4K60, bez sztucznego podnoszenia
+  FPS i rozdzielczości. Standardowy Shorts: pionowe 1080 × 1920, do 60 FPS.
+- Miniatura: osobna grafika AI związana z akcją i grą, czytelny hak,
+  oznaczenie serii i numeru, branding; finalny JPG 1280 × 720 poniżej 2 MB.
+  Screenshot z gameplayu nie zastępuje zatwierdzonej miniatury.
+- Każda paczka ma wspólny katalog: film, 3 Shortsy, miniatura, tytuły/opisy/tagi,
+  oznaczenie gry/typu, manifest źródeł, napisy i raport kontroli.
+
+2. HARMONOGRAM — NAJPIERW FILM GŁÓWNY
+- Źródłem prawdy jest lokalny harmonogram kanoniczny. Najpierw plan i walidacja
+  lokalna, potem zastosowanie na YouTube i weryfikacja wykonanych zmian.
+- Strefa czasowa: Europe/Warsaw, z uwzględnieniem zmiany czasu.
+- Jeden cykl trwa 5 dni i obejmuje dwie paczki: A i B.
+  Dzień 1: 15:00 film A; 18:00 Shorts A1.
+  Dzień 2: 12:00 post społeczności; 15:00 Luźna scena; 18:00 Shorts A2.
+  Dzień 3: 15:00 film B; 18:00 Shorts B1.
+  Dzień 4: 12:00 poradnik/ciekawostka EN; 15:00 wersja PL; 18:00 Shorts B2.
+  Dzień 5: 15:00 Shorts A3; 18:00 Shorts B3.
+- AI EN i PL to dwa osobne materiały, tego samego dnia w odstępie 3 godzin.
+  Bez kompletnej pary oba sloty pozostają puste. Dłuższy poradnik AI również
+  zajmuje ten slot; nie dokładamy wówczas kolejnej pary Shortsów AI.
+- Gry przeplatamy całymi paczkami, zachowując osobną numerację każdej serii.
+  Nie powtarzamy gry, jeśli jest gotowa paczka innej gry. Maksymalnie jeden
+  film główny dziennie. Każdy Shorts prowadzi do swojego wcześniejszego odcinka.
+- Stosujemy faktyczne pole powiązanego filmu w Shortsach; link w opisie jest
+  dodatkiem, nie zastępuje przycisku. Tytuł opisuje akcję, nie „Zapowiedź 1”.
+- Aktywne planowanie: 20 dni, czyli 4 cykle. Dalszy zapas może zostać przesłany
+  jako prywatny BEZ daty; czeka w lokalnym backlogu. Nie jest duplikatem.
+- Luźne i AI nie wydłużają harmonogramu poza cykle zawierające główne odcinki.
+- Brak materiału w dodatkowym slocie oznacza wolny slot, nie losowy zamiennik.
+- Nie przesuwamy rozpoczętej najbliższej paczki bez osobnej decyzji.
+- GTA V jest standardową serią: najpierw przydział 3 Shortsów na odcinek;
+  rezerwa może trafić do Luźnych dopiero po jawnym zatwierdzeniu i wyczerpaniu
+  odcinków. Jeden plik nigdy nie trafia do dwóch kolejek uploadu.
+- Każda gra ma swoją playlistę, Luźne sceny także playlistę wspólną.
+
+3. METADANE I NAPISY
+- Tytuły wynikają z treści; zawierają grę, konkretny hak i właściwy numer serii.
+- Polskie dane pozostają oryginalne. Angielskie tytuły/opisy są lokalizacją,
+  nie zastępują polskich. Osobny film AI EN ma własne angielskie dane i dźwięk.
+- Filmy główne: poprawione PL i EN SRT. Shortsy: EN SRT i czytelne napisy PL.
+- Konserwatywna korekta: bez wymyślania niesłyszalnych wypowiedzi.
+- Uzupełnienia: główne odcinki, Luźne/dodatkowe/AI, potem odcinkowe Shortsy.
+- Aktualizujemy istniejącą ścieżkę języka zamiast dodawać duplikaty.
+- Oznaczenia użycia AI oceniamy per materiał według bieżących zasad YouTube;
+  nie dodajemy automatycznie etykiety „wygenerowano AI” do każdego gameplayu.
+
+4. BEZPIECZEŃSTWO I CZYSZCZENIE
+- Przed publikacją sprawdzamy obraz, dźwięk, końcówki, napisy, miniaturę,
+  zgodność metadanych, playlistę i brak wcześniejszego użycia źródła.
+- Upload zapisuje trwałe video_id i stan kolejnych czynności. Po przerwaniu
+  sprawdzamy stan, zamiast ponownie wysyłać materiał w ciemno.
+- Każda zmiana: attempted / verified / failed / blocked. Verified nie powtarzamy.
+- Sam komunikat o zakończeniu transferu nie dowodzi poprawnego przetworzenia
+  wideo przez YouTube. Sprawdzamy prawidłową wersję i jej odtwarzalność.
+- Czyszczenie tylko po audycie: cały komplet odcinek + 3 Shortsy poprawnie
+  przesłany i zweryfikowany, wymagane metadane i napisy zabezpieczone.
+- Źródła usuwamy wyłącznie z dokładnego manifestu i po sprawdzeniu, że nie są
+  potrzebne innym paczkom. Rejestrów użycia i assetów marki nie kasujemy.
+- Zastąpiony upload wolno usunąć dopiero po weryfikacji poprawnego odpowiednika.
+- Nie uruchamiamy automatyzacji ani wyłączenia komputera ze starej zgody.
+  Wyłączenie wymaga nowego, jednoznacznego polecenia dotyczącego bieżącej pracy.
+
+5. ZAKRES KOPII NA GITHUB
+- Publiczne repo przechowuje wyłącznie przejrzany kod i dokumentację.
+- Nie wysyłamy tokenów, sekretów OAuth, prywatnych manifestów, stanów kanału,
+  roboczych audytów, nagrań ani napisów. Sam .gitignore nie chroni sekretów,
+  które już znalazły się w historii: przed pushem przeglądamy dokładny diff.
+- Operacyjna kopia prywatna musi oddzielnie zabezpieczać stany, harmonogram,
+  manifesty, konfigurację i zatwierdzone assety. Bez niej sam klon tego repo
+  nie odtworzy pełnego środowiska ani historii wykonanych uploadów.

@@ -64,6 +64,21 @@ Sloty Luźnej sceny (dzień 2, 15:00) i materiału poradnikowego (dzień 4,
 
 ## Konfiguracja
 
+### Zasady kanału i zakres kopii
+
+Aktualne ustalenia produkcyjne i publikacyjne opisuje
+[polityka projektu](docs/ZASADY_KANALU.txt), a limity pracy i reguły wznawiania
+[ochrona budżetu](docs/ZASADY_BUDZETU.txt).
+Są to zasady rozszerzonego procesu kanału, nie deklaracja, że każda z nich
+jest już zaimplementowana w tym publicznym wydaniu aplikacji.
+
+Repozytorium przechowuje publiczny kod i dokumentację. Nie jest pełną kopią
+roboczego środowiska: nie zawiera wszystkich lokalnych narzędzi operacyjnych,
+tokenów OAuth, rejestrów uploadu, prywatnego harmonogramu, napisów ani nagrań.
+Do odtworzenia kolejki po awarii potrzebna jest osobna prywatna kopia stanów,
+manifestów i zatwierdzonych assetów. Nie wolno odtwarzać kolejki samym ponownym
+uploadem plików — najpierw trzeba uzgodnić istniejące identyfikatory YouTube.
+
 Najważniejsze pola w `publisher_config.json`:
 
 | Pole | Znaczenie |

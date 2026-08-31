@@ -12,3 +12,26 @@ publisher_config.json
 *.avi
 *.log
 
+# Private operational data: never publish channel state or credentials.
+.env
+.env.*
+!.env.example
+credentials*.json
+*token*.json
+*_state.json
+*_manifest.json
+*_plan.json
+localization_pending.json
+robust_youtube_inventory.json
+harmonogram_kanoniczny.json
+rolling_schedule_backlog.json
+audits/
+backups/
+logs/
+localizations/
+ASSETY_ZATWIERDZONE/
+*.srt
+*.vtt
+*.wav
+*.mp3
+

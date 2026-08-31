@@ -1,0 +1,26 @@
+DIVITHY — BUDŻET PRACY I WZNAWIANIE
+Stan ustaleń: 31.08.2026
+
+- Limit rozmowy Codex, quota YouTube Data API i dzienny limit uploadów kanału
+  są różnymi ograniczeniami. Raport podaje konkretny limit i dowód.
+- Brak wiarygodnego licznika oznacza „nieznane”, nie 0% ani 100%.
+- Domyślna partia przeglądarki: 5 minut albo 20 wywołań, co nastąpi wcześniej.
+  Bezpiecznie domknąć rozpoczętą pozycję, zapisać wynik i zakończyć odpowiedź.
+- Plan dokładnych celów i zmian przygotować lokalnie. Nie rozszerzać partii
+  na poboczne audyty. Wznowienie pomija uprzednio zweryfikowane zapisy.
+- Najwyżej jedno ponowienie po błędzie przejściowym i sprawdzeniu stanu.
+  Po odmowie bezpieczeństwa zero obejść; blokadę zapisać i zgłosić.
+- Małe partie do 5 zapisów. Każdy zapis: attempted/verified/failed/blocked.
+  Nie oznaczać całego inwentarza jako świeży po sprawdzeniu kilku pozycji.
+- Domyślne poprawki metadanych/lokalizacji: do 2000 szacowanych jednostek API,
+  z odczytami. Większy budżet wymaga aktualnego polecenia. To zasada pracy,
+  nie globalny techniczny licznik ani zmiana limitu konta.
+- Nie odświeżać całego kanału wielokrotnie, jeśli wystarcza kilka znanych ID.
+- Po quotaExceeded/uploadLimitExceeded zatrzymać przebieg z zapisanym stanem,
+  bez natychmiastowego zapętlania prób.
+- Mechaniczny render/upload działa w tle z trwałą kolejką, stanem i logiem.
+  Po sprawdzeniu startu zakończyć odpowiedź. Cykliczny monitoring tylko na
+  bieżące życzenie, z podanym interwałem; nie przywracać dawnych automatów.
+- Nie zmieniać samodzielnie planu, modelu, resetów ani uprawnień konta.
+- Nie wyłączać komputera w ramach „oszczędzania” bez nowej, wyraźnej zgody.
+- Raport końcowy: wykonane i zweryfikowane, pozostałe, blokada, punkt wznowienia.
