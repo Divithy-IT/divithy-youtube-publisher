@@ -7,9 +7,25 @@
 
 Lokalny publikator, który zamienia gotowe paczki filmów w uporządkowany
 harmonogram kanału YouTube. Obsługuje tytuły, opisy, tagi, miniatury,
-playlisty, shortsy, filmy główne i planowane daty publikacji.
+playlisty, Shortsy, filmy główne i planowane daty publikacji.
 
 ![Schemat działania](docs/workflow.svg)
+
+## Czym to jest, a czym nie jest
+
+To **drugi etap** dwuczęściowego łańcucha produkcyjnego kanału Divithyツ.
+Materiał powstaje w
+[divithy-highlight-lab](https://github.com/Divithy-IT/divithy-highlight-lab),
+a to narzędzie zajmuje się wszystkim, co dzieje się od gotowego pliku wzwyż:
+walidacją paczki, metadanymi, playlistami, kolejnością i wysyłką. Oba
+repozytoria stykają się na katalogu gotowych paczek i nie dublują swoich zadań.
+
+Repozytorium przechowuje **publiczny kod i dokumentację**. Nie jest pełną kopią
+roboczego środowiska: nie zawiera wszystkich lokalnych narzędzi operacyjnych,
+tokenów OAuth, rejestrów uploadu, prywatnego harmonogramu, napisów ani nagrań.
+Do odtworzenia kolejki po awarii potrzebna jest osobna prywatna kopia stanów,
+manifestów i zatwierdzonych assetów. Nie wolno odtwarzać kolejki samym ponownym
+uploadem plików — najpierw trzeba uzgodnić istniejące identyfikatory YouTube.
 
 ## Najważniejsze możliwości
 
@@ -48,7 +64,7 @@ Filmy YouTube/
     └── typ.txt              # kompilacja lub pelna_rozgrywka
 ```
 
-Paczka pełnej rozgrywki może nie mieć shortsów. Plik metadanych zawiera
+Paczka pełnej rozgrywki może nie mieć Shortsów. Plik metadanych zawiera
 sekcje `FILM GŁÓWNY` oraz, jeśli występują, `SHORT 1` do `SHORT 3`.
 
 Domyślny cykl dwóch paczek:
@@ -71,13 +87,6 @@ Aktualne ustalenia produkcyjne i publikacyjne opisuje
 [ochrona budżetu](docs/ZASADY_BUDZETU.txt).
 Są to zasady rozszerzonego procesu kanału, nie deklaracja, że każda z nich
 jest już zaimplementowana w tym publicznym wydaniu aplikacji.
-
-Repozytorium przechowuje publiczny kod i dokumentację. Nie jest pełną kopią
-roboczego środowiska: nie zawiera wszystkich lokalnych narzędzi operacyjnych,
-tokenów OAuth, rejestrów uploadu, prywatnego harmonogramu, napisów ani nagrań.
-Do odtworzenia kolejki po awarii potrzebna jest osobna prywatna kopia stanów,
-manifestów i zatwierdzonych assetów. Nie wolno odtwarzać kolejki samym ponownym
-uploadem plików — najpierw trzeba uzgodnić istniejące identyfikatory YouTube.
 
 Najważniejsze pola w `publisher_config.json`:
 
@@ -115,22 +124,89 @@ Zasady współpracy opisuje [CONTRIBUTING.md](CONTRIBUTING.md), zmiany
 [CHANGELOG.md](CHANGELOG.md), a zgłoszenia bezpieczeństwa
 [SECURITY.md](SECURITY.md).
 
-## YouTube API compliance
+## Zgodność z YouTube API
+
+Divithy Publisher używa Google OAuth 2.0 i YouTube Data API wyłącznie do
+działań zleconych przez uprawnionego właściciela kanału. Obowiązują publiczna
+[Polityka prywatności](PRIVACY.md) i [Regulamin](TERMS.md). Dostęp można
+w każdej chwili cofnąć w
+[połączeniach zewnętrznych konta Google](https://myaccount.google.com/connections).
+
+## Licencja
+
+[MIT](LICENSE) © 2026 Michał Lemanczyk.
+
+---
+
+## English
+
+A local Python application that turns finished content packages into an
+orderly YouTube publishing schedule. It validates packages and handles titles,
+descriptions, tags, thumbnails, playlists, Shorts, main episodes and planned
+publication dates through the YouTube Data API v3.
+
+### What this is, and what it is not
+
+This is the **second stage** of a two-part production chain for the Divithyツ
+channel. The material itself is produced by
+[divithy-highlight-lab](https://github.com/Divithy-IT/divithy-highlight-lab);
+this tool takes over from the finished file onwards. The two repositories meet
+at a directory of content packages and do not duplicate each other's work.
+
+The repository holds public code and documentation. It is **not** a full copy of
+the working environment: it excludes operational tooling, OAuth tokens, upload
+registries, the private schedule, subtitles and footage. Recovering an
+interrupted queue requires a separate private copy of state files, manifests and
+approved assets. A queue must never be rebuilt by simply re-uploading files —
+existing YouTube video IDs have to be reconciled first.
+
+### Key features
+
+- a five-day rhythm that publishes the main episode first, then its Shorts;
+- an alternating game queue, for example `L4D2 → PUBG → L4D2`;
+- compilations and full playthroughs interleaved within each game;
+- existing playlists are reused and missing ones created;
+- a full plan preview before anything is sent;
+- resumable runs that never re-upload completed items;
+- both a desktop window and a CLI mode for automation.
+
+### Quick start
+
+Run `Instalacja.bat`, copy `publisher_config.example.json` to
+`publisher_config.json`, set `content_root`, the start date and the local path
+to your OAuth client, then launch `Uruchom_publikator.bat`. Always choose
+**Przygotuj podgląd** (prepare preview) before connecting the account. Google
+setup is documented in [INSTRUKCJA_AUTORYZACJI.md](INSTRUKCJA_AUTORYZACJI.md).
+
+A package is a directory holding the main video, up to three Shorts, a
+thumbnail, a metadata text file and optional `gra.txt` / `typ.txt` markers
+naming the game and the content type.
+
+### Safety
+
+A plan preview publishes nothing; a real upload requires separate consent.
+Completed operations are recorded in a git-ignored `upload_state.json`. Client
+secrets, OAuth tokens, local configuration and video files are blocked by
+`.gitignore`. If your Google project has not passed the YouTube API Services
+audit, leave `api_audited` as `false` — YouTube may force uploads from an
+unverified project to stay private.
+
+### Tests
+
+```powershell
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+python -m unittest discover -s tests -v
+```
+
+### YouTube API compliance
 
 Divithy Publisher uses Google OAuth 2.0 and the YouTube Data API only for the
 actions requested by the authorized channel owner. Review the public
 [Privacy Policy](PRIVACY.md) and [Terms of Service](TERMS.md). Access can be
-revoked at any time from [Google Account third-party
-connections](https://myaccount.google.com/connections).
+revoked at any time from
+[Google Account third-party connections](https://myaccount.google.com/connections).
 
-## English
-
-Divithy YouTube Publisher is a local Python application that validates content
-packages and schedules YouTube videos, Shorts, thumbnails, metadata and
-playlists through the YouTube Data API v3. It alternates games and content
-types, supports resumable uploads, and always provides a preview before any
-remote change. See the quick-start steps above or open an issue in English.
-
-## Licencja
-
+Issues and pull requests in English are welcome. Licensed under
 [MIT](LICENSE) © 2026 Michał Lemanczyk.
