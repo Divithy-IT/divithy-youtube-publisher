@@ -5,6 +5,8 @@
 ![YouTube API](https://img.shields.io/badge/YouTube-Data_API_v3-FF0000?logo=youtube&logoColor=white)
 ![License](https://img.shields.io/badge/license-MIT-39e7ff)
 
+**Wydanie przygotowywane: 0.3.0-beta.1.** Instrukcja CLI i wymagania dla użytkowników: [Quick start (English)](docs/QUICKSTART_EN.md).
+
 Lokalny publikator, który zamienia gotowe paczki filmów w uporządkowany
 harmonogram kanału YouTube. Obsługuje tytuły, opisy, tagi, miniatury,
 playlisty, Shortsy, filmy główne i planowane daty publikacji.
@@ -98,7 +100,10 @@ Najważniejsze pola w `publisher_config.json`:
 | `game_order` | preferowana kolejność serii |
 | `type_order` | kolejność kompilacji i pełnych rozgrywek |
 | `playlist_names` | mapowanie gry na nazwę playlisty |
-| `api_audited` | potwierdzenie audytu projektu YouTube API |
+| `schedule_publication` | jawne włączenie planowanej publikacji publicznej; domyślnie `false` |
+| `expected_channel_id` | identyfikator właściwego kanału, sprawdzany przed wysyłaniem |
+| `default_language` | język metadanych filmów i playlist |
+| `playlist_privacy` | prywatność nowo tworzonych playlist; domyślnie `private` |
 
 ## Bezpieczny przebieg
 
@@ -107,9 +112,18 @@ Stan ukończonych operacji trafia do ignorowanego pliku `upload_state.json`.
 Sekrety klienta, tokeny OAuth, lokalna konfiguracja i filmy są blokowane przez
 `.gitignore`.
 
-Jeśli projekt Google nie przeszedł audytu YouTube API Services, pozostaw
-`api_audited` jako `false`. YouTube może wymusić prywatność materiałów
-wysłanych przez niezweryfikowany projekt.
+CLI domyślnie pokazuje podgląd. Wysyłanie wymaga `--upload --approve-plan SHA256`
+z zatwierdzonego planu. Najpierw sprawdź kanał przez `--check-channel` i ustaw
+`expected_channel_id`. `schedule_publication: false` oznacza tylko prywatne
+filmy; `true` ustawia przyszłe daty publicznej publikacji. Flaga `api_audited`
+z dawnych konfiguracji jest ignorowana. Według [aktualizacji Google z 2 listopada
+2026](https://developers.google.com/youtube/data/revision_history) nieaudytowane
+projekty nie mają już ogólnej blokady filmów jako prywatnych.
+
+Oba interfejsy zachowują zarezerwowane daty i blokują równoległą pracę z tym
+samym stanem. Nieznany wynik uploadu zatrzymuje automatyczne ponawianie do czasu
+uzgodnienia ID z YouTube Studio. Nie przenoś plików ani nie kasuj historii w celu
+ponowienia wysyłania. [Instrukcja odzyskiwania](docs/QUICKSTART_EN.md#interrupted-operations).
 
 ## Testy i rozwój
 
@@ -178,18 +192,25 @@ to your OAuth client, then launch `Uruchom_publikator.bat`. Always choose
 **Przygotuj podgląd** (prepare preview) before connecting the account. Google
 setup is documented in [INSTRUKCJA_AUTORYZACJI.md](INSTRUKCJA_AUTORYZACJI.md).
 
-A package is a directory holding the main video, up to three Shorts, a
+A package is a directory holding the main video, zero or exactly three Shorts, a
 thumbnail, a metadata text file and optional `gra.txt` / `typ.txt` markers
 naming the game and the content type.
 
 ### Safety
 
-A plan preview publishes nothing; a real upload requires separate consent.
-Completed operations are recorded in a git-ignored `upload_state.json`. Client
-secrets, OAuth tokens, local configuration and video files are blocked by
-`.gitignore`. If your Google project has not passed the YouTube API Services
-audit, leave `api_audited` as `false` — YouTube may force uploads from an
-unverified project to stay private.
+The CLI defaults to offline preview. Actual sending requires
+`--upload --approve-plan SHA256` matching the reviewed plan and an explicitly
+configured `expected_channel_id`. `schedule_publication` defaults to false
+(private-only uploads). Enabling it explicitly schedules future public
+publication. The legacy `api_audited` setting is ignored; Google's
+[2 November 2026 revision](https://developers.google.com/youtube/data/revision_history)
+removed the general private-only restriction for unverified projects.
+
+Both interfaces preserve reserved dates, protect the same state file with a
+process lock, and stop for reconciliation after an upload of unknown outcome.
+Completed video IDs are saved before thumbnail and playlist steps. Credentials
+and state remain local and git-ignored. See [CLI setup and recovery](docs/QUICKSTART_EN.md).
+A customer still needs local Python, their own Google project and OAuth consent.
 
 ### Tests
 
@@ -210,3 +231,12 @@ revoked at any time from
 
 Issues and pull requests in English are welcome. Licensed under
 [MIT](LICENSE) © 2026 Michał Lemanczyk.
+
+## Agent skill / Agensi
+
+The original [agent workflow](skills/divithy-youtube-publisher/SKILL.md) orchestrates
+this local application. Build its text-only ZIP with `python tools/build_skill.py`.
+It contains instructions, a workflow reference and the MIT licence; it does not
+bundle the application, dependencies, media or credentials. Runtime setup is
+an explicit prerequisite. Marketplace delivery and acceptance require a separate
+review; a built ZIP is not proof of marketplace approval or live API validation.

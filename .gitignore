@@ -11,6 +11,10 @@ publisher_config.json
 *.mkv
 *.avi
 *.log
+*.lock
+dist/
+# Atomic JSON writes may leave a private temporary file after a hard crash.
+.*.json.*
 
 # Private operational data: never publish channel state or credentials.
 .env

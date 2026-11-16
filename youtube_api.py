@@ -1,9 +1,8 @@
 from __future__ import annotations
 
-import json
 import random
 import time
-from datetime import timezone
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable
 
@@ -15,6 +14,7 @@ from googleapiclient.errors import HttpError
 from googleapiclient.http import MediaFileUpload
 
 from planner import QueueItem
+from local_state import load_state, save_state, write_private
 
 
 SCOPES = ["https://www.googleapis.com/auth/youtube"]
@@ -45,7 +45,7 @@ def authenticate(client_secret: Path, token_file: Path):
     if not credentials or not credentials.valid:
         flow = InstalledAppFlow.from_client_secrets_file(str(client_secret), SCOPES)
         credentials = flow.run_local_server(port=0, open_browser=True, prompt="consent")
-    token_file.write_text(credentials.to_json(), encoding="utf-8")
+    write_private(token_file, credentials.to_json())
     return build("youtube", "v3", credentials=credentials, cache_discovery=False)
 
 
@@ -57,14 +57,17 @@ def upload_video(
     made_for_kids: bool,
     schedule_publication: bool,
     progress: Callable[[str], None],
+    default_language: str = "pl",
 ) -> str:
+    if schedule_publication and item.publish_at <= datetime.now(timezone.utc):
+        raise ValueError("Publication time is in the past. Review a future schedule before uploading.")
     body = {
         "snippet": {
             "title": item.metadata.title,
             "description": item.metadata.description,
             "tags": list(item.metadata.tags),
             "categoryId": category_id,
-            "defaultLanguage": "pl",
+            "defaultLanguage": default_language,
         },
         "status": {
             "privacyStatus": "private",
@@ -117,7 +120,7 @@ def _normalise_playlist_title(value: str) -> str:
     return "".join(character for character in value.casefold() if character.isalnum())
 
 
-def ensure_playlist(youtube, title: str) -> str:
+def ensure_playlist(youtube, title: str, privacy: str = "private", default_language: str = "pl") -> str:
     target = _normalise_playlist_title(title)
     token = None
     while True:
@@ -135,18 +138,19 @@ def ensure_playlist(youtube, title: str) -> str:
         token = response.get("nextPageToken")
         if not token:
             break
-    created = _execute_with_retry(
+    # A mutating insert must not be retried blindly after an ambiguous failure.
+    created = (
         youtube.playlists().insert(
             part="snippet,status",
             body={
                 "snippet": {
                     "title": title,
-                    "description": f"Wszystkie odcinki z serii {title} na kanale Divithyツ.",
-                    "defaultLanguage": "pl",
+                    "description": f"Videos in the {title} series.",
+                    "defaultLanguage": default_language,
                 },
-                "status": {"privacyStatus": "public"},
+                "status": {"privacyStatus": privacy},
             },
-        )
+        ).execute()
     )
     return created["id"]
 
@@ -162,7 +166,7 @@ def add_to_playlist(youtube, playlist_id: str, video_id: str) -> None:
     )
     if existing.get("items"):
         return
-    _execute_with_retry(
+    (
         youtube.playlistItems().insert(
             part="snippet",
             body={
@@ -171,17 +175,13 @@ def add_to_playlist(youtube, playlist_id: str, video_id: str) -> None:
                     "resourceId": {"kind": "youtube#video", "videoId": video_id},
                 }
             },
-        )
+        ).execute()
     )
 
 
-def load_state(path: Path) -> dict:
-    if not path.exists():
-        return {"uploads": {}}
-    return json.loads(path.read_text(encoding="utf-8"))
-
-
-def save_state(path: Path, state: dict) -> None:
-    temporary = path.with_suffix(".tmp")
-    temporary.write_text(json.dumps(state, ensure_ascii=False, indent=2), encoding="utf-8")
-    temporary.replace(path)
+def connected_channel(youtube) -> dict:
+    response = _execute_with_retry(youtube.channels().list(part="snippet", mine=True))
+    channels = response.get("items", [])
+    if len(channels) != 1:
+        raise ValueError("Select one YouTube channel during OAuth authorization.")
+    return {"id": channels[0]["id"], "title": channels[0]["snippet"]["title"]}

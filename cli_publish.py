@@ -1,184 +1,87 @@
-"""Non-interactive publisher used after reviewing the generated queue."""
+"""Preview locally; upload only the plan explicitly approved by the user."""
 
 from __future__ import annotations
 
 import argparse
 import json
 import sys
-from datetime import date, datetime, timedelta
 from pathlib import Path
 
-from planner import build_queue, discover_packages
-from youtube_api import (
-    add_to_playlist,
-    authenticate,
-    ensure_playlist,
-    load_state,
-    save_state,
-    set_thumbnail,
-    upload_video,
-)
-
+from local_state import load_state, state_lock, write_private
+from publishing import load_config, prepare, publish
 
 APP_DIR = Path(__file__).resolve().parent
-CONFIG_FILE = APP_DIR / "publisher_config.json"
-TOKEN_FILE = APP_DIR / "token.json"
-STATE_FILE = APP_DIR / "upload_state.json"
 
 
-def playlist_mapping(value: str) -> dict[str, str]:
-    result = {}
-    for entry in value.split(";"):
-        game, separator, title = entry.partition("=")
-        if separator and game.strip() and title.strip():
-            result[game.strip()] = title.strip()
-    return result
-
-
-def main() -> None:
+def main(argv=None) -> None:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--config", type=Path, default=APP_DIR / "publisher_config.json")
+    parser.add_argument("--state", type=Path, help="Default: upload_state.json beside config")
+    parser.add_argument("--token", type=Path, help="Default: token.json beside config")
+    parser.add_argument("--plan", type=Path, help="Write a private JSON preview to this path")
     parser.add_argument("--limit", type=int, default=0, help="Maximum new uploads; 0 means all")
-    parser.add_argument("--inspect-only", action="store_true")
-    args = parser.parse_args()
-
-    config = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
-    config.setdefault("type_order", "kompilacja,pelna_rozgrywka")
-    config.setdefault("playlist_names", "L4D2=Left 4 Dead 2;PUBG=PUBG;CS2=Counter-Strike 2")
-    packages = discover_packages(Path(config["content_root"]))
-    state = load_state(STATE_FILE)
-    game_order = [
-        part.strip()
-        for part in config.get("game_order", "L4D2,PUBG").split(",")
-        if part.strip()
-    ]
-    type_order = [
-        part.strip()
-        for part in config.get("type_order", "kompilacja,pelna_rozgrywka").split(",")
-        if part.strip()
-    ]
-
-    # Build the original queue once to obtain stable item keys and to repair
-    # thumbnails/playlists for uploads completed during an earlier run.
-    all_items = build_queue(
-        packages,
-        date.fromisoformat(config["start_date"]),
-        config.get("timezone", "Europe/Warsaw"),
-        game_order,
-        type_order,
-    )
-
-    pending_folders = {
-        item.package.folder
-        for item in all_items
-        if item.key not in state["uploads"]
-    }
-    pending_packages = [
-        package for package in packages if package.folder in pending_folders
-    ]
-
-    resume_date = date.fromisoformat(config["start_date"])
-    completed_dates = []
-    for uploaded in state["uploads"].values():
-        value = uploaded.get("publish_at")
-        if value:
-            completed_dates.append(datetime.fromisoformat(value).date())
-    if completed_dates:
-        resume_date = max(resume_date, max(completed_dates) + timedelta(days=1))
-
-    # New games must start after the last already scheduled upload. Rebuilding
-    # only the pending packages prevents newly added series from occupying
-    # dates that are already taken by older uploads.
-    items = build_queue(
-        pending_packages,
-        resume_date,
-        config.get("timezone", "Europe/Warsaw"),
-        game_order,
-        type_order,
-    )
-    pending = [item for item in items if item.key not in state["uploads"]]
-    if args.inspect_only:
-        for item in pending:
-            print(item.publish_at.isoformat(), item.video.name, item.metadata.title)
-        return
-    if args.limit:
-        pending = pending[: args.limit]
-    youtube = authenticate(Path(config["client_secret"]), TOKEN_FILE)
-    playlists = playlist_mapping(config.get("playlist_names", ""))
-    playlist_cache: dict[str, str] = {}
-    # Repair supplementary steps after an interrupted run without uploading
-    # the large video again.
-    for item in all_items:
-        existing = state["uploads"].get(item.key)
-        if not existing:
-            continue
-        if item.thumbnail and not existing.get("thumbnail_set", False):
-            set_thumbnail(youtube, existing["video_id"], item.thumbnail)
-            existing["thumbnail_set"] = True
-            save_state(STATE_FILE, state)
-        if item.kind == "film" and not existing.get("playlist_added", False):
-            title = playlists.get(item.package.game, item.package.game)
-            playlist_id = playlist_cache.get(title)
-            if not playlist_id:
-                playlist_id = ensure_playlist(youtube, title)
-                playlist_cache[title] = playlist_id
-            add_to_playlist(youtube, playlist_id, existing["video_id"])
-            existing["playlist_added"] = True
-            existing["playlist_id"] = playlist_id
-            save_state(STATE_FILE, state)
-    if not pending:
-        print("Nothing to upload; supplementary steps are complete.")
-        return
-    for position, item in enumerate(pending, start=1):
-        print(f"[{position}/{len(pending)}] Uploading {item.video.name}", flush=True)
-        video_id = upload_video(
-            youtube,
-            item,
-            config.get("notify_main", True) if item.kind == "film" else config.get("notify_shorts", False),
-            config.get("category_id", "20"),
-            config.get("made_for_kids", False),
-            True,
-            lambda message: print(message, flush=True),
-        )
-        state["uploads"][item.key] = {
-            "video_id": video_id,
-            "video": str(item.video),
-            "publish_at": item.publish_at.isoformat(),
-            "scheduled": True,
-            "thumbnail_set": item.thumbnail is None,
-            "playlist_added": item.kind != "film",
-        }
-        save_state(STATE_FILE, state)
-        if item.thumbnail:
-            set_thumbnail(youtube, video_id, item.thumbnail)
-            state["uploads"][item.key]["thumbnail_set"] = True
-            save_state(STATE_FILE, state)
-        if item.kind == "film":
-            title = playlists.get(item.package.game, item.package.game)
-            playlist_id = playlist_cache.get(title)
-            if not playlist_id:
-                playlist_id = ensure_playlist(youtube, title)
-                playlist_cache[title] = playlist_id
-            add_to_playlist(youtube, playlist_id, video_id)
-            state["uploads"][item.key]["playlist_added"] = True
-            state["uploads"][item.key]["playlist_id"] = playlist_id
-            save_state(STATE_FILE, state)
-        status = youtube.videos().list(part="snippet,status,processingDetails", id=video_id).execute()["items"][0]
-        print(
-            json.dumps(
-                {
-                    "video_id": video_id,
-                    "title": status["snippet"]["title"],
-                    "privacyStatus": status["status"].get("privacyStatus"),
-                    "publishAt": status["status"].get("publishAt"),
-                    "uploadStatus": status["status"].get("uploadStatus"),
-                },
-                ensure_ascii=False,
-            ),
-            flush=True,
-        )
+    parser.add_argument("--inspect-only", action="store_true", help="Preview (also the default)")
+    parser.add_argument("--json", action="store_true", help="Print the full plan as JSON")
+    parser.add_argument("--upload", action="store_true", help="Perform the explicitly approved plan")
+    parser.add_argument("--approve-plan", help="SHA-256 from the reviewed preview")
+    parser.add_argument("--check-channel", action="store_true", help="Authorize and read channel ID; no uploads")
+    args = parser.parse_args(argv)
+    if args.limit < 0:
+        parser.error("--limit must be zero or positive")
+    if args.upload and (args.inspect_only or args.check_channel):
+        parser.error("--upload cannot be combined with --inspect-only or --check-channel")
+    if args.upload and not args.approve_plan:
+        parser.error("--upload requires --approve-plan from a reviewed preview")
+    if args.approve_plan and not args.upload:
+        parser.error("--approve-plan requires --upload")
+    config_path = args.config.expanduser().resolve()
+    state_path = (args.state or config_path.parent / "upload_state.json").resolve()
+    token_path = (args.token or config_path.parent / "token.json").resolve()
+    protected = {state_path, token_path, config_path}
+    if len(protected) != 3 or (args.plan and args.plan.resolve() in protected):
+        parser.error("Config, state, token and plan must use different files")
+    try:
+        config = load_config(config_path)
+        secret = Path(config["client_secret"])
+        if secret in protected or (args.plan and args.plan.resolve() == secret):
+            parser.error("OAuth credentials must use a separate file")
+        with state_lock(state_path):
+            if args.check_channel:
+                from youtube_api import authenticate, connected_channel
+                youtube = authenticate(secret, token_path)
+                print(json.dumps(connected_channel(youtube), ensure_ascii=False))
+                return
+            state = load_state(state_path)
+            items, plan, digest = prepare(config, state, args.limit)
+            if args.upload and digest != args.approve_plan:
+                parser.error("Plan or settings changed. Preview and approve the new SHA-256 first.")
+            if args.plan:
+                write_private(args.plan, json.dumps(plan, ensure_ascii=False, indent=2))
+            if args.json:
+                print(json.dumps(plan, ensure_ascii=False, indent=2))
+            else:
+                selected = set(plan["selected_keys"])
+                for item in items:
+                    label = "UPLOAD" if item.key in selected else "SAVED / NOT SELECTED"
+                    print(label, item.publish_at.isoformat(), item.video.name, item.metadata.title)
+                mode = "scheduled publication" if plan["options"]["schedule_publication"] else "PRIVATE ONLY"
+                print(f"Mode: {mode}; new uploads: {plan['new_upload_count']}; repairs: {len(plan['repairs'])}")
+                print(f"Approval SHA-256: {digest}")
+            if not args.upload:
+                return
+            if not plan["new_upload_count"] and not plan["repairs"]:
+                print("Nothing to upload or repair.")
+                return
+            if not plan["options"]["expected_channel_id"]:
+                parser.error("Set expected_channel_id using --check-channel before uploading")
+            from youtube_api import authenticate
+            youtube = authenticate(secret, token_path)
+            publish(youtube, config, state, state_path, items, plan)
+            print("Finished. Verify video IDs, privacy and dates in YouTube Studio.")
+    except (ValueError, OSError, RuntimeError) as error:
+        parser.exit(1, f"Publisher: {error}\n")
 
 
 if __name__ == "__main__":

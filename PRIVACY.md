@@ -1,59 +1,51 @@
 # Privacy Policy — Divithy Publisher
 
-**Effective date:** 17 August 2026
+**Effective date:** 16 November 2026
 
-Divithy Publisher is a personal, locally operated desktop tool used by the
-owner of the Divithy YouTube channel to upload and manage the owner's own video
-content through the YouTube Data API.
+Divithy Publisher is an open-source local application for people authorized to
+manage a YouTube channel. Each operator uses their own local installation and
+Google OAuth client. The developer does not operate a shared upload service,
+customer account database or telemetry endpoint for this application.
 
-## Data accessed
+## Data and purpose
 
-After the channel owner authorizes the application with Google OAuth 2.0, the
-application may access information required to:
+After Google OAuth consent, the application uses YouTube Data API v3 to identify
+the connected channel, upload selected videos, set their metadata and privacy or
+scheduled publication dates, upload thumbnails, and find/create/update playlists.
+The requested youtube scope is broader than upload-only access because playlist
+management is included. The public application does not implement caption
+uploads, automatic video deletion or access to unrelated Google services.
 
-- upload videos and Shorts;
-- set titles, descriptions, tags, language settings and publication dates;
-- upload thumbnails and caption files;
-- create and manage playlists;
-- read the status of videos belonging to the authorized channel;
-- update or delete channel content only when the owner explicitly requests it.
+Media, metadata, OAuth credentials, tokens, approved plans and upload history
+are stored on the operator's computer. Media, relevant metadata and authorized
+API requests are transmitted to Google/YouTube to perform the operator's chosen
+actions. The application has no mechanism to send these to its developer or
+sell them to third parties. See the [Google Privacy Policy](https://policies.google.com/privacy).
 
-The application does not request access to unrelated Google services.
+## Local storage and deletion
 
-## Storage and security
+Token and state files are excluded from the repository. Protect them and their
+backups with appropriate OS permissions. POSIX files written by the application
+use owner-only permissions; Windows access is governed by the containing user's
+folder permissions. A state file contains filenames, planned metadata and YouTube
+IDs and must be treated as private even though it is not an OAuth credential.
 
-Divithy Publisher runs locally on the channel owner's computer. OAuth
-credentials, access tokens, upload history and video files are stored locally
-and are excluded from the public source-code repository. They are not sold,
-rented or shared with third parties.
+Revoke access through [Google Account connections](https://myaccount.google.com/connections)
+and remove local token.json to disconnect. Local records remain until deleted by
+the operator. Deleting them does not delete YouTube content; use YouTube Studio
+to manage or delete uploaded content. Preserve or reconcile video IDs before
+restarting after deleting history, to avoid duplicate uploads.
 
-Data is transmitted to Google and YouTube only as needed to perform actions
-requested by the authorized channel owner. Google processes this information
-under the [Google Privacy Policy](https://policies.google.com/privacy).
+## Optional AI-agent and marketplace use
 
-## Retention and deletion
-
-Local OAuth tokens and operational records remain on the owner's computer
-until the owner deletes them. The owner can revoke the application's access at
-any time from [Google Account third-party
-connections](https://myaccount.google.com/connections). After revocation, the
-local OAuth token can be deleted and the application can no longer access the
-channel.
-
-Videos, captions, thumbnails and playlists uploaded to YouTube remain subject
-to the channel owner's settings and YouTube's retention policies. The owner
-can delete that content through YouTube Studio or through the application.
-
-## Limited access
-
-The application is not offered as a public multi-user service. It is an
-internal creator tool used only by its owner. No external user accounts or
-customer databases are maintained.
+When an operator uses an AI agent or Agensi to orchestrate the local application,
+those services process conversation and tool data under their own policies.
+Keep OAuth JSON, tokens and authorization codes out of conversations. Review
+which unpublished metadata an agent may read or display. The skill's marketplace
+purchase does not authorize Google access or uploading videos.
 
 ## Contact
 
-Questions about this policy may be sent to
-[michal@lemanczyk-it.pl](mailto:michal@lemanczyk-it.pl).
+[michal@lemanczyk-it.pl](mailto:michal@lemanczyk-it.pl)
 
-Project repository: [Divithy
-Publisher](https://github.com/Divithy-IT/divithy-youtube-publisher)
+[Source repository](https://github.com/Divithy-IT/divithy-youtube-publisher)

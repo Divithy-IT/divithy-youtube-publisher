@@ -52,20 +52,19 @@
 6. Zatwierdź uprawnienie do zarządzania przesyłanymi filmami.
 7. Po komunikacie o powodzeniu wróć do programu.
 
-## F. Audyt wymagany do automatycznej publikacji publicznej
+## F. Prywatne wysyłanie i harmonogram publiczny
 
-Nowe, nieaudytowane projekty korzystające z `videos.insert` mają materiały
-zablokowane jako prywatne. Zwykłe ustawienie OAuth na „Production” nie usuwa
-tego ograniczenia.
+Według [oficjalnej aktualizacji Google z 2 listopada 2026](https://developers.google.com/youtube/data/revision_history)
+filmy wysyłane przez niezweryfikowane projekty API nie są już automatycznie
+blokowane jako prywatne. Audyt zgodności, weryfikacja aplikacji OAuth i limity
+API pozostają odrębnymi sprawami. Nie zaznaczaj fałszywego potwierdzenia audytu.
+Dawne pole `api_audited` nie jest używane przez wersję 0.3.
 
-Do czasu audytu pozostaw w programie odznaczone pole **Projekt API przeszedł
-audyt**. Dla bezpieczeństwa program nie pozwoli wtedy wysłać gotowych plików,
-ponieważ zablokowany materiał trzeba byłoby przesłać ponownie przez
-zaudytowany projekt albo YouTube Studio.
+Najpierw połącz konto i sprawdź nazwę oraz ID kanału. Wpisz ID do pola
+**ID kanału YouTube** (CLI: `expected_channel_id`, odczyt przez `--check-channel`).
+Domyślnie pliki są wysyłane wyłącznie jako prywatne. Pole **Zaplanuj publikację
+publiczną** (`schedule_publication: true`) jawnie włącza przyszły `publishAt`.
+Przeszłe daty są odrzucane. Zmiana ustawień wymaga nowego podglądu.
 
-Audyt rozpoczyna formularz:
-<https://support.google.com/youtube/contact/yt_api_form?hl=pl>
-
-Po pozytywnym audycie zaznacz pole **Projekt API przeszedł audyt**. Wtedy program
-wyśle film jako prywatny i ustawi `publishAt`, czyli automatyczną datę publicznej
-publikacji.
+Przygotuj podgląd, sprawdź jego metadane, daty i prywatność, a dopiero potem
+zatwierdź wysyłanie. [Instrukcja CLI i odzyskiwania po awarii](docs/QUICKSTART_EN.md).

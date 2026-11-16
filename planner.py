@@ -53,12 +53,12 @@ def _metadata_from_block(lines: list[str]) -> Metadata:
     in_description = False
     for raw in lines:
         line = raw.strip()
-        if line.startswith("Tytuł:"):
+        if line.startswith(("Tytuł:", "Title:")):
             title = line.partition(":")[2].strip()
             in_description = False
-        elif line == "Opis:":
+        elif line in ("Opis:", "Description:"):
             in_description = True
-        elif line.startswith("Tagi:"):
+        elif line.startswith(("Tagi:", "Tags:")):
             tags = tuple(tag.strip() for tag in line.partition(":")[2].split(",") if tag.strip())
             in_description = False
         elif in_description:
@@ -68,22 +68,27 @@ def _metadata_from_block(lines: list[str]) -> Metadata:
         raise ValueError("Brakuje pola „Tytuł:” w pliku metadanych.")
     if len(title) > 100:
         raise ValueError(f"Tytuł przekracza limit 100 znaków: {title}")
-    if len(description) > 5000:
+    if any(character in title + description for character in "<>"):
+        raise ValueError("Title and description cannot contain angle brackets (< or >).")
+    if len(description.encode("utf-8")) > 5000:
         raise ValueError(f"Opis przekracza limit 5000 znaków: {title}")
-    if len(",".join(tags)) > 500:
+    if len(",".join(tags)) + sum(2 for tag in tags if " " in tag) > 500:
         raise ValueError(f"Tagi przekraczają limit 500 znaków: {title}")
     return Metadata(title=title, description=description, tags=tags)
 
 
 def read_metadata(path: Path) -> dict[str, Metadata]:
     text = path.read_text(encoding="utf-8-sig")
-    headers = re.compile(r"^(FILM GŁÓWNY|SHORT\s+\d+)\s*$", re.MULTILINE)
+    headers = re.compile(r"^(FILM GŁÓWNY|MAIN VIDEO|SHORT[ \t]+\d+)[ \t]*\r?$", re.MULTILINE)
     matches = list(headers.finditer(text))
     result: dict[str, Metadata] = {}
     for index, match in enumerate(matches):
         end = matches[index + 1].start() if index + 1 < len(matches) else len(text)
         block = text[match.end():end].strip().splitlines()
-        result[match.group(1)] = _metadata_from_block(block)
+        header = "FILM GŁÓWNY" if match.group(1) == "MAIN VIDEO" else " ".join(match.group(1).split())
+        if header in result:
+            raise ValueError(f"Duplicate metadata section: {header}")
+        result[header] = _metadata_from_block(block)
     return result
 
 
@@ -113,6 +118,7 @@ def infer_content_type(folder: Path, short_count: int) -> str:
 
 
 def discover_packages(root: Path) -> list[Package]:
+    root = root.expanduser().resolve()
     packages: list[Package] = []
     for folder in sorted((path for path in root.iterdir() if path.is_dir()), key=lambda p: p.name):
         number_match = re.search(r"(\d+)", folder.name)
@@ -121,6 +127,8 @@ def discover_packages(root: Path) -> list[Package]:
         metadata_files = list(folder.glob("YouTube*.txt"))
         if not metadata_files:
             continue
+        if len(metadata_files) != 1:
+            raise ValueError(f"{folder.name}: expected exactly one YouTube*.txt metadata file.")
         parsed = read_metadata(metadata_files[0])
         main_candidates = [
             path for path in folder.glob("*.mp4")
@@ -132,6 +140,8 @@ def discover_packages(root: Path) -> list[Package]:
         )
         if len(main_candidates) != 1:
             raise ValueError(f"{folder.name}: oczekiwano jednego filmu głównego, znaleziono {len(main_candidates)}.")
+        if any(video.stat().st_size == 0 for video in main_candidates + short_candidates):
+            raise ValueError(f"{folder.name}: video file is empty.")
         if len(short_candidates) not in (0, 3):
             raise ValueError(
                 f"{folder.name}: paczka może mieć zero albo trzy shortsy, znaleziono {len(short_candidates)}."
@@ -145,6 +155,8 @@ def discover_packages(root: Path) -> list[Package]:
                 raise ValueError(f"{folder.name}: brakuje sekcji {key}.")
             short_items.append((video, parsed[key]))
         thumbnails = sorted(folder.glob("Miniatura*.jpg")) + sorted(folder.glob("Miniatura*.png"))
+        if len(thumbnails) > 1:
+            raise ValueError(f"{folder.name}: expected at most one thumbnail.")
         main_metadata = parsed["FILM GŁÓWNY"]
         packages.append(
             Package(
