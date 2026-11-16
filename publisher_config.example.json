@@ -1,6 +1,6 @@
 {
   "content_root": "C:/Users/USER/Documents/Filmy YouTube",
-  "start_date": "2026-08-01",
+  "start_date": "2027-01-01",
   "timezone": "Europe/Warsaw",
   "game_order": "L4D2,PUBG",
   "type_order": "kompilacja,pelna_rozgrywka",
@@ -9,7 +9,10 @@
   "notify_main": true,
   "notify_shorts": false,
   "made_for_kids": false,
-  "api_audited": false,
+  "schedule_publication": false,
+  "expected_channel_id": "",
+  "default_language": "en",
+  "playlist_privacy": "private",
   "client_secret": "C:/path/to/client_secret.json"
 }
 
