@@ -82,38 +82,40 @@ def upload_video(
             item.publish_at.astimezone(timezone.utc).isoformat().replace("+00:00", "Z")
         )
     media = MediaFileUpload(str(item.video), chunksize=16 * 1024 * 1024, resumable=True)
-    request = youtube.videos().insert(
-        part="snippet,status",
-        body=body,
-        media_body=media,
-        notifySubscribers=notify_subscribers,
-    )
-    response = None
-    retries = 0
-    while response is None:
-        try:
-            status, response = request.next_chunk()
-            if status:
-                progress(f"{item.video.name}: {int(status.progress() * 100)}%")
-        except HttpError as error:
-            if error.resp.status not in RETRIABLE_CODES or retries >= 8:
-                raise
-            retries += 1
-            delay = random.random() * (2**retries)
-            progress(f"Błąd chwilowy {error.resp.status}; ponawiam za {delay:.1f} s.")
-            time.sleep(delay)
-    video_id = response["id"]
-    return video_id
+    try:
+        request = youtube.videos().insert(
+            part="snippet,status",
+            body=body,
+            media_body=media,
+            notifySubscribers=notify_subscribers,
+        )
+        response = None
+        retries = 0
+        while response is None:
+            try:
+                status, response = request.next_chunk()
+                if status:
+                    progress(f"{item.video.name}: {int(status.progress() * 100)}%")
+            except HttpError as error:
+                if error.resp.status not in RETRIABLE_CODES or retries >= 8:
+                    raise
+                retries += 1
+                delay = random.random() * (2**retries)
+                progress(f"Błąd chwilowy {error.resp.status}; ponawiam za {delay:.1f} s.")
+                time.sleep(delay)
+        video_id = response["id"]
+        return video_id
+    finally:
+        media.stream().close()
 
 
 def set_thumbnail(youtube, video_id: str, thumbnail: Path) -> None:
     mimetype = "image/png" if thumbnail.suffix.casefold() == ".png" else "image/jpeg"
-    _execute_with_retry(
-        youtube.thumbnails().set(
-            videoId=video_id,
-            media_body=MediaFileUpload(str(thumbnail), mimetype=mimetype),
-        )
-    )
+    media = MediaFileUpload(str(thumbnail), mimetype=mimetype)
+    try:
+        _execute_with_retry(youtube.thumbnails().set(videoId=video_id, media_body=media))
+    finally:
+        media.stream().close()
 
 
 def _normalise_playlist_title(value: str) -> str:

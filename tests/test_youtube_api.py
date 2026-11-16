@@ -30,12 +30,20 @@ class ApiRequestTests(unittest.TestCase):
         self.assertNotIn('publishAt', request['body']['status'])
         self.assertEqual(request['body']['snippet']['defaultLanguage'], 'en')
         self.assertFalse(request['notifySubscribers'])
+        self.assertTrue(request['media_body'].stream().closed)
 
     def test_scheduled_request_is_private_until_future_utc_date(self):
         upload_video(self.youtube, self.item, True, '20', False, True, lambda _: None)
         body = self.youtube.videos.return_value.insert.call_args.kwargs['body']
         self.assertEqual(body['status']['privacyStatus'], 'private')
         self.assertEqual(body['status']['publishAt'], self.item.publish_at.isoformat().replace('+00:00', 'Z'))
+
+    def test_upload_failure_closes_media_handle(self):
+        self.youtube.videos.return_value.insert.return_value.next_chunk.side_effect = RuntimeError('failed')
+        with self.assertRaises(RuntimeError):
+            upload_video(self.youtube, self.item, False, '20', False, False, lambda _: None)
+        media = self.youtube.videos.return_value.insert.call_args.kwargs['media_body']
+        self.assertTrue(media.stream().closed)
 
     def test_expired_date_is_rejected_before_insert(self):
         item = replace(self.item, publish_at=datetime.now(timezone.utc) - timedelta(seconds=1))
